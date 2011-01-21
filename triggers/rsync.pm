@@ -21,6 +21,9 @@ sub setattribute {
     $self->{"remote_module"} = $h->{"remote"}->[0]->{"name"} ; 
     $self->{"remote_ips"} = [ split /,/ , $h->{"remote"}->[0]->{"ip"} ]; 
     $self->{"local_path"} = $h->{"localpath"}->[0]->{"watch"} ;
+    if ( $h->{"localpath"}->[0]->{"exclude"} ) { 
+        $self->{"exclude"} = [ split /,/ , $h->{"localpath"}->[0]->{"exclude"} ];
+    }
     return $self ; 
 }
 
@@ -40,9 +43,16 @@ sub run_rsync {
     my $remote_module = $self->{"remote_module"}; 
     my $user = $self->{"user"} ; 
     my $options = $self->{"options"} ; 
+    my $exclude_cmd = "" ; 
+    if ( $self->{"exclude"} ) { 
+        foreach my $dir ( @{$self->{"exclude"}} ) { 
+            $exclude_cmd .= ' --exclude ' ;
+            $exclude_cmd .= "\"$dir\"";
+        }   
+    }   
     foreach my $server (   @{$self->{"remote_ips"}} ) { 
             print  " Rsyncing from $local_path to ${user}\@${server}::$remote_module \n "; 
-            system ( "/usr/bin/rsync $options $local_path ${user}\@${server}::$remote_module" );
+            system ( "/usr/bin/rsync $options $exclude_cmd $local_path ${user}\@${server}::$remote_module" );
             if ( $? != 0 ) { 
                 print " FAILED: Rsync from $local_path to ${user}\@${server}::$remote_module \n "; 
             }

@@ -1,0 +1,15 @@
+<head>
+     <servsync name="window">
+         <localpath watch='/home/develpush/window/' />
+          <remote ip='ip1,ip12g,ip3' name='window' />
+          <rsync options='-avz --delete --links -e ssh' user='root' />
+          <trigger options="mail,rsync" period="120"/>
+     </servsync>
+       <servsync name="dumbbar">
+           <localpath watch='/home/dumbbar/' exclude='access_logs,cache,check_avail_abuse,pgfoundationapi/logs'/>
+           <remote ip='ip1,ip12g,ip3' name='dumbbar' />
+                <rsync options='-avz --delete --links -e ssh' user='root' />
+                <trigger options="mail,rsync" period="300"/>
+        </servsync>
+
+</head>

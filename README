@@ -1,1 +1,48 @@
-*heavily under developement and testing , read check and then use* 
+ Rsync script based on inotify , It syncs up local directories to multiple servers based on two time periods , sleep_period and trigger period . sleep period determines the time interval in which the script wakes up the check the monitored directory for any changes , if it gets any changes it issues a rsync command based on the configuration . trigger_period defines the global time period in which rsync runs irrespective of the changes in the monitored directory. 
+   EXAMPLE CONFIGURATION : 
+   <head>
+        <servsync name="test_shared">
+            <localpath watch='/u/shared-data/' exclude='access-logs,cache,check_avail_abuse,pgfoundationapi/logs'/>
+             <remote ip='bigrock-in-2.myorderbox.com' name='test_shared' />
+             <rsync options='-avz -u --delete -e ssh' user='root' />
+             <trigger options="mail,rsync" period="20"/>
+        </servsync>
+   </head>
+
+   You can have different servsync sections in a particular configuration depending on how many local directories you want to sync up with the remote rsync location . 
+   Each servsync path can have multiple comma separated remote IPs/Hostname . Rsync will run every "period" in trigger parameter . 
+   trigger parameter in moduable , so you can put up your module ( perl module ) to include things like mail , scp , jabber client , notification etc . By default it ships with only rsync. Next release might have mail module. 
+   so every 10 secs  ( sleep_period ) scripts wakes up to check '/u/shared-data/' and if it finds any changes it sync it to bigrock-in-2.myorderbox.com::test_shared , here test_shared in a rsync module on the remote server . you need to define this on your remote servers in /etc/rsyncd.conf  , For example : 
+
+   [test_shared]
+   path= /u/shared-data/
+   comment = test shared bigrock html contents
+   ignore errors
+   read only = no
+
+   Irrespecive of changes , the script will rsync based on period attribute of trigger parameter . 
+   It will issue the following command 
+   /usr/bin/rsync -avz -u --delete -e ssh --exclude access-logs --exclude cache --exclude check_avail_abuse --exclude pgfoundationapi/logs /u/shared-data/ root@bigrock-in-2.myorderbox.com::test_shared
+
+   Things to do in next draft: 
+
+   A.) Support for async triggers based on epoll 
+   B.) Mail trrigger , 
+   C.) Better logging and debugging.
+   D.) init startup and syslog scripts  
+
+   How to run the script: 
+
+   Things to be checked : 
+   A.) Password less ssh to the remote servers 
+   B.) User should have the permission on remote servers to accept updates or to the loging file you provied 
+   C.) rsyncd.conf should be updated 
+
+   Install the RPM rsync-inotify , rum the following command with the user you desire to rsync 
+   perl sync_path.pl [--daemonize] [--config_loc] [--log_loc] [--sleep_period] [--help]
+
+   --daemonize : Will daemonize the script 
+   --config_loc : default location of the config file is /opt/rsync-inotify/servsync_conf.xml 
+   --log_loc : defaults to /var/log/rsync-inotify/sync.log , verfiy that the user has write permission to log file 
+   --slep_period: interval in which script wakes to check for the local directory changes 
+   --help : print this help 
