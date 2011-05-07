@@ -1,5 +1,13 @@
- Rsync script based on inotify , It syncs up local directories to multiple servers based on two time periods , sleep_period and trigger period . sleep period determines the time interval in which the script wakes up the check the monitored directory for any changes , if it gets any changes it issues a rsync command based on the configuration . trigger_period defines the global time period in which rsync runs irrespective of the changes in the monitored directory. 
-   EXAMPLE CONFIGURATION : 
+Hosted Also on 
+http://code.google.com/p/rsync-inotify/
+
+Rsync script based on inotify and some perl not so magic.  
+ It syncs up your servers local directories to multiple servers  based on two time periods , sleep_period and trigger period . 
+ 
+sleep period determines the time interval in which the script wakes up the check the monitored directory for any changes , if it gets any changes it issues a rsync command based on the configuration . trigger_period defines the global time period in which rsync runs irrespective of the changes in the monitored directory. 
+
+EXAMPLE CONFIGURATION : 
+
    <head>
         <servsync name="test_shared">
             <localpath watch='/u/shared-data/' exclude='access-logs,cache,check_avail_abuse,pgfoundationapi/logs'/>
@@ -9,10 +17,11 @@
         </servsync>
    </head>
 
-   You can have different servsync sections in a particular configuration depending on how many local directories you want to sync up with the remote rsync location . 
-   Each servsync path can have multiple comma separated remote IPs/Hostname . Rsync will run every "period" in trigger parameter . 
-   trigger parameter in moduable , so you can put up your module ( perl module ) to include things like mail , scp , jabber client , notification etc . By default it ships with only rsync. Next release might have mail module. 
-   so every 10 secs  ( sleep_period ) scripts wakes up to check '/u/shared-data/' and if it finds any changes it sync it to bigrock-in-2.myserver.com::test_shared , here test_shared in a rsync module on the remote server . you need to define this on your remote servers in /etc/rsyncd.conf  , For example : 
+servsync section's "name" attribute defines the remote "RSYNC DAEMON MODULE NAME" , Currently this script expects to have a rsync daemon running on remote servers and with proper daemon module names . More on this at rsync man page "USING RSYNC-DAEMON FEATURES VIA A REMOTE-SHELL CONNECTION"
+
+You can have different servsync sections in a particular configuration depending on how many local directories you want to sync up with the remote rsync location . 
+   Each servsync path can have multiple comma separated remote IPs/Hostname . Rsync will run every "period" in trigger parameter .trigger parameter in modulable , so you can put up your module ( perl module ) to include things like mail , scp , jabber client , notification etc . By default it ships with only rsync. Next release might have mail module. 
+   so every 20 secs  ( sleep_period ) scripts wakes up to check '/u/shared-data/' and if it finds any changes it sync it to bigrock-in-2.myserver.com::test_shared , here test_shared in a rsync module name on the remote server . you need to define this on your remote servers in /etc/rsyncd.conf  , For example : 
 
    [test_shared]
    path= /u/shared-data/
@@ -35,8 +44,10 @@
 
    Things to be checked : 
    A.) Password less ssh to the remote servers 
-   B.) User should have the permission on remote servers to accept updates or to the loging file you provied 
+   B.) User should have the permission on remote servers to accept updates or to the logging file you provide 
    C.) rsyncd.conf should be updated 
+
+INSTALLATION: 
 
    Install the RPM rsync-inotify , rum the following command with the user you desire to rsync 
    perl sync_path.pl [--daemonize] [--config_loc] [--log_loc] [--sleep_period] [--help]
